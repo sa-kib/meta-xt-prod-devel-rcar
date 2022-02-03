@@ -1,0 +1,1 @@
+These are Dual Rendering demo binary file for SafeRTOS
