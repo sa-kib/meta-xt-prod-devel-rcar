@@ -231,7 +231,7 @@ components:
         - "tmp/deploy/images/%{MACHINE}/xen-%{MACHINE}.uImage"
         - "tmp/deploy/images/%{MACHINE}/xenpolicy-%{MACHINE}"
         - "tmp/deploy/images/%{MACHINE}/%{XT_XEN_DTB_NAME}"
-        - "tmp/deploy/images/%{MACHINE}/core-image-weston-%{MACHINE}.ext4"
+        - "tmp/deploy/images/%{MACHINE}/core-image-minimal-%{MACHINE}.ext4"
 
   domu:
     build-dir: "%{YOCTOS_WORK_DIR}"
@@ -299,7 +299,7 @@ images:
       domd_rootfs:
         gpt_type: B921B045-1DF0-41C3-AF44-4C6F280D3FAE # Linux aarch64 root
         type: raw_image
-        image_path: "%{YOCTOS_WORK_DIR}/build-domd/tmp/deploy/images/%{MACHINE}/core-image-weston-%{MACHINE}.ext4"
+        image_path: "%{YOCTOS_WORK_DIR}/build-domd/tmp/deploy/images/%{MACHINE}/core-image-minimal-%{MACHINE}.ext4"
 
 parameters:
   # Machines
