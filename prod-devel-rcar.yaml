@@ -193,6 +193,9 @@ components:
       - type: git
         url: "https://github.com/iusyk/meta-xt-prod-devel-rcar.git"
         rev: feature/domd-kf-cfg
+      - type: git
+        url: "git://github.com/meta-qt5/meta-qt5"
+        rev: "45c45a1524bd6a8dbd3dcf2077c791a23fec8d91"
     builder:
       type: yocto
       work_dir: "%{DOMD_BUILD_DIR}"
