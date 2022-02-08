@@ -19,6 +19,7 @@ do_install_append() {
     install -m 0744 ${WORKDIR}/doma-set-root ${D}${libdir}/xen/bin
 
     # Call doma-set-root script
+    sed -i 's/backend-ready.*/domd.service/' ${D}${systemd_unitdir}/system/doma.service
     echo "[Service]" >> ${D}${systemd_unitdir}/system/doma.service
     echo "ExecStartPre=${libdir}/xen/bin/doma-set-root" >> ${D}${systemd_unitdir}/system/doma.service
 }
