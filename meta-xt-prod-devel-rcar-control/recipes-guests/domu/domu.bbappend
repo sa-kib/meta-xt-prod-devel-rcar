@@ -15,10 +15,10 @@ FILES:${PN} += " \
 CFG_FILE="${D}${sysconfdir}/xen/domu.cfg"
 
 do_install:append() {
-    cat ${WORKDIR}/domu-vdevices.cfg >> ${CFG_FILE}
+    #cat ${WORKDIR}/domu-vdevices.cfg >> ${CFG_FILE}
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'pvcamera', 'true', 'false', d)}; then
-        cat ${WORKDIR}/domu-pvcamera.cfg >> ${CFG_FILE}
+        #cat ${WORKDIR}/domu-pvcamera.cfg >> ${CFG_FILE}
         # Update GUEST_DEPENDENCIES by adding camerabe after sndbe
         sed -i 's/\<sndbe\>/& camerabe/' ${D}${sysconfdir}/init.d/guest_domu
         echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu.service
