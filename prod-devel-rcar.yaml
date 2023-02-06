@@ -175,7 +175,9 @@ components:
         - [PREFERRED_VERSION_xen, "4.18.0+git%"]
         - [PREFERRED_VERSION_xen-tools, "4.18.0+git%"]
 
-        - [PACKAGE_EXCLUDE:append, " qemu"]
+        - [QEMU_TARGETS, "aarch64"]
+        - [DISTRO_FEATURES:append, " xen vmsep"]
+        - [PACKAGE_EXCLUDE:append, " qemu qemu-system-aarch64 qemu-keymaps qemu-support qemu-firmware"]
 
       layers:
         - "../meta-virtualization"
@@ -232,6 +234,18 @@ components:
         # Build our own Xen version rather than proposed by meta-virtualization
         - [PREFERRED_VERSION_xen, "4.18.0+git%"]
         - [PREFERRED_VERSION_xen-tools, "4.18.0+git%"]
+
+        # Below are changes needed to get a proper Xen-aware qemu-system-aarch64
+        - [IMAGE_INSTALL:append, " virglrenderer libsdl2"]
+        - [PACKAGECONFIG:append:pn-libsdl2, " wayland gles2 arm-neon"]
+        - [PACKAGECONFIG:remove:pn-libsdl2, " x11 opengl"]
+        - [PACKAGECONFIG:remove:pn-libepoxy, " x11"]
+        - [PACKAGECONFIG:remove:pn-gtk+3, " x11"]
+        - [PACKAGECONFIG:append:pn-qemu, " sdl virglrenderer xen virtfs epoxy gtk+"]
+        - [PACKAGECONFIG:remove:pn-qemu, " kvm"]
+        - [DISTRO_FEATURES:append, " xen vmsep"]
+        - [QEMU_TARGETS, "aarch64"]
+        - [PACKAGE_INSTALL:append, " qemu-system-aarch64 qemu-keymaps"]
 
       build_target: core-image-weston
       layers:
