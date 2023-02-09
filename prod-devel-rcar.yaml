@@ -176,7 +176,6 @@ components:
         - [PREFERRED_VERSION_xen-tools, "4.17.0+git%"]
 
         - [PACKAGE_EXCLUDE:append, " qemu"]
-        - [INITRAMFS_MAXSIZE, "163840"]
 
       layers:
         - "../meta-virtualization"
