@@ -71,27 +71,8 @@ common_data:
     # add the static lib to SDK toolchain
     - [SDKIMAGE_FEATURES:append, " staticdev-pkgs"]
 
-    # Enable Gfx Pkgs
-    - [MACHINE_FEATURES:append, " gsx"]
-    - [BB_MULTI_PROVIDER_ALLOWED:append," virtual/libgl virtual/egl virtual/libgles1 virtual/libgles2"]
-
-    # for Wayland/Weston
-    - [DISTRO_FEATURES_NATIVESDK:append, " wayland"]
-    - [DISTRO_FEATURES:append, " pam"]
-    - [PREFERRED_PROVIDER_virtual/libgles1, ""]
-    - [PREFERRED_PROVIDER_virtual/libgles2, "gles-user-module"]
-    - [PREFERRED_PROVIDER_virtual/egl, "libegl"]
-    - [PREFERRED_PROVIDER_virtual/libgl, ""]
-    - [PREFERRED_PROVIDER_virtual/mesa, ""]
-    - [PREFERRED_PROVIDER_virtual/libgbm, "libgbm"]
-    - [PREFERRED_PROVIDER_libgbm-dev, "libgbm"]
-    - [BBMASK, "mesa-gl"]
-
     # Add for gstreamer plugins ugly
     - [LICENSE_FLAGS_ACCEPTED, "commercial"]
-
-    # Configuration for USB 3.0
-    - [MACHINE_FEATURES:append, " usb3"]
 
     # Add Capacity Aware migration Strategy (CAS)
     - [MACHINE_FEATURES:append, " cas"]
@@ -105,12 +86,6 @@ common_data:
 
     # Additional testing and debug tools
     - [IMAGE_INSTALL:append, " expect ltrace strace evtest"]
-
-    # Install some apps to test GPU/Display
-    - [IMAGE_INSTALL:append, " glmark2 kmscube"]
-
-    # gles-um-compile.bb still requires python2
-    - [I_SWEAR_TO_MIGRATE_TO_PYTHON3, "yes"]
 
   # The same set of layers and configs is used both in DomD and DomU
   # to build a DDK from source code
@@ -247,6 +222,31 @@ components:
         - [QEMU_TARGETS, "aarch64"]
         - [PACKAGE_INSTALL:append, " qemu-system-aarch64 qemu-keymaps"]
 
+        # Enable Gfx Pkgs
+        - [MACHINE_FEATURES:append, " gsx"]
+        - [BB_MULTI_PROVIDER_ALLOWED:append," virtual/libgl virtual/egl virtual/libgles1 virtual/libgles2"]
+
+        # for Wayland/Weston
+        - [DISTRO_FEATURES_NATIVESDK:append, " wayland"]
+        - [DISTRO_FEATURES:append, " pam"]
+        - [PREFERRED_PROVIDER_virtual/libgles1, ""]
+        - [PREFERRED_PROVIDER_virtual/libgles2, "gles-user-module"]
+        - [PREFERRED_PROVIDER_virtual/egl, "libegl"]
+        - [PREFERRED_PROVIDER_virtual/libgl, ""]
+        - [PREFERRED_PROVIDER_virtual/mesa, ""]
+        - [PREFERRED_PROVIDER_virtual/libgbm, "libgbm"]
+        - [PREFERRED_PROVIDER_libgbm-dev, "libgbm"]
+        - [BBMASK:append, " mesa-gl"]
+
+        # Install some apps to test GPU/Display
+        - [IMAGE_INSTALL:append, " glmark2 kmscube"]
+
+        # gles-um-compile.bb still requires python2
+        - [I_SWEAR_TO_MIGRATE_TO_PYTHON3, "yes"]
+
+        # Configuration for USB 3.0
+        - [MACHINE_FEATURES:append, " usb3"]
+
       build_target: core-image-weston
       layers:
         - "../poky/meta"
@@ -295,6 +295,19 @@ components:
         - [EXTRA_IMAGEDEPENDS:remove, "u-boot"]
 
         - [IMAGE_INSTALL:append, " pciutils"]
+
+        # for Wayland/Weston
+        - [DISTRO_FEATURES_NATIVESDK:append, " wayland"]
+        - [DISTRO_FEATURES:append, " pam"]
+
+        # Mask the wayland related to GFX
+        - [BBMASK:append, " gles-user-module kernel-module-gles wayland-kms libgbm"]
+
+        # Mask MMP recipes
+        - [BBMASK:append, " kernel-module-uvcs-drv omx-user-module"]
+
+        # Mask the gstreamer recipe for MMP
+        - [BBMASK:append, " meta-renesas/meta-rcar-gen3/recipes-multimedia/gstreamer"]
 
       layers:
         - "../meta-openembedded/meta-oe"
