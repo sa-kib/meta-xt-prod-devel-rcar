@@ -1,5 +1,4 @@
 IMAGE_INSTALL:append = " \
-    sndbe \
     ${@bb.utils.contains('DISTRO_FEATURES', 'pvcamera', 'camerabe', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vis', 'aos-vis', '', d)} \
 "
