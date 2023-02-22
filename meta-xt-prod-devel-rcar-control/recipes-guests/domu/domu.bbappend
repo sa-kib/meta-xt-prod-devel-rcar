@@ -19,8 +19,6 @@ do_install:append() {
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'pvcamera', 'true', 'false', d)}; then
         #cat ${WORKDIR}/domu-pvcamera.cfg >> ${CFG_FILE}
-        # Update GUEST_DEPENDENCIES by adding camerabe after sndbe
-        sed -i 's/\<sndbe\>/& camerabe/' ${D}${sysconfdir}/init.d/guest_domu
         echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu.service
         echo "Requires=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu.service
         echo "After=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu.service
@@ -32,7 +30,7 @@ do_install:append() {
         # Update root by changing xvda1 to vda
         sed -i 's/root=\/dev\/xvda1/root=\/dev\/vda/' ${CFG_FILE}
 
-        # Update GUEST_DEPENDENCIES by adding virtio-disk after sndbe
+        # Update GUEST_DEPENDENCIES by adding dependency to the virtio
         echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu.service
         echo "Requires=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu.service
         echo "After=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu.service
