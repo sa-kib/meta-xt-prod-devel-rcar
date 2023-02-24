@@ -313,6 +313,9 @@ components:
         # Mask the gstreamer recipe for MMP
         - [BBMASK:append, " meta-renesas/meta-rcar-gen3/recipes-multimedia/gstreamer"]
 
+        # Install kmscube which doesn't require libgbm
+        - [IMAGE_INSTALL:append, " kmscube"]
+
       layers:
         - "../meta-openembedded/meta-oe"
         - "../meta-openembedded/meta-filesystems"
