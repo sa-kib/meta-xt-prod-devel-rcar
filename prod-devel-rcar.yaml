@@ -1,5 +1,5 @@
 desc: "Xen-Troops development setup for Renesas RCAR Gen3 hardware"
-min_ver: "0.12"
+min_ver: "0.13"
 
 variables:
   YOCTOS_WORK_DIR: "yocto"
@@ -25,6 +25,8 @@ variables:
   XT_DOMZ_CONFIG_NAME: "domz-generic.cfg"
   XT_MULTIMEDIA_EVA_DIR : ""
   XT_PREBUILT_GSX_DIR: ""
+  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/virtual-device:virtual_device_aarch64"
+  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/common-modules/virtual-device/virtual_device_aarch64"
 common_data:
   # Sources used by all yocto-based domains
   sources: &COMMON_SOURCES
@@ -114,8 +116,8 @@ components:
     sources:
       - *COMMON_SOURCES
       - type: git
-        url: "https://github.com/otyshchenko1/meta-xt-prod-devel-rcar.git"
-        rev: my_devel_virtio
+        url: "https://github.com/dterletskiy/meta-xt-prod-devel-rcar.git"
+        rev: xenvm-trout-dev
     builder:
       type: yocto
       work_dir: "%{DOM0_BUILD_DIR}"
@@ -329,29 +331,31 @@ components:
     build-dir: "%{ANDROID_KERNEL_DIR}"
     sources:
       - type: repo
-        url: https://github.com/xen-troops/android_kernel_manifest.git
-        rev: common-android12-5.4-xt-master
+        url: https://github.com/dterletskiy/android_kernel_manifest.git
+        rev: common-android14-6.1-xenvm-trout-dev
         manifest: default.xml
         depth: 1
         groups: "%{XT_DOMA_SOURCE_GROUP}"
         dir: "."
     builder:
-      type: android_kernel
+      type: android_kernel_bazel
+      deploy-dir: "%{ANDROID_KERNEL_DEPLOY_DIR}"
+      build-config: "%{ANDROID_KERNEL_BUILD_CONFIG}"
       env:
         - "TARGET_BOARD_PLATFORM=%{SOC_FAMILY}"
-        - "BUILD_CONFIG=common/build.config.xenvm"
+        - "BUILD_CONFIG=%{ANDROID_KERNEL_BUILD_CONFIG}"
         - "SKIP_MRPROPER=1"
         - "EXT_MODULES=%{XT_DOMA_KERNEL_EXTRA_MODULES}"
       target_images:
-        - "out/android12-5.4/common/arch/arm64/boot/Image"
-        - "out/android12-5.4/staging/vendor/lib/modules/pvrsrvkm.ko"
+        - "%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
+        - "%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs.img"
 
   doma:
     build-dir: "%{DOMA_DIR}"
     sources:
       - type: repo
-        url: https://github.com/xen-troops/android_manifest.git
-        rev: android-12-master
+        url: https://github.com/dterletskiy/android_manifest.git
+        rev: android-12-xenvm-trout-dev
         manifest: doma.xml
         depth: 1
         groups: "%{XT_DOMA_SOURCE_GROUP}"
@@ -360,7 +364,8 @@ components:
       type: android
       env:
         - "TARGET_BOARD_PLATFORM=%{SOC_FAMILY}"
-        - "TARGET_PREBUILT_KERNEL=../%{ANDROID_KERNEL_DIR}/out/android12-5.4/common/arch/arm64/boot/Image"
+        - "TARGET_PREBUILT_KERNEL=../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
+        - "TARGET_PREBUILT_MODULES_DIR=../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs/"
         - "DDK_KM_PREBUILT_MODULE=%{XT_DOMA_DDK_KM_PREBUILT_MODULE}"
       lunch_target: xenvm-userdebug
       target_images:
@@ -370,7 +375,8 @@ components:
         - "out/target/product/xenvm/vbmeta.img"
         - "out/target/product/xenvm/system.img"
       additional_deps:
-        - "../%{ANDROID_KERNEL_DIR}/out/android12-5.4/common/arch/arm64/boot/Image"
+        - "../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
+        - "../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs.img"
 
   zephyr:
     build-dir: "%{DOMZ_DIR}"
@@ -667,6 +673,7 @@ parameters:
                 # multimedia evaluation package 20210428.
                 - [DISTRO_FEATURES:append, " aaclcdec_lib aaclcdec_mdw aaclcenc_lib aaclcenc_mdw h264dec_lib h264enc_lib"]
                 - ["HOSTTOOLS:append", " unzip "]
+
   ENABLE_AOS_VIS:
     desc: "Enable AOS VIS service"
     "no":
@@ -690,6 +697,7 @@ parameters:
             builder:
               env:
                 - "XT_USE_VIS_SERVER=true"
+
   PREBUILT_DDK:
     desc: "Use pre-built GPU drivers"
     "no":
@@ -715,19 +723,20 @@ parameters:
             builder:
               conf:
                 - [XT_PREBUILT_GSX_DIR, "%{XT_PREBUILT_GSX_DIR}"]
+
   ANDROID_PREBUILT_DDK:
     desc: "Use pre-built GPU drivers for Android"
     "no":
       default: true
       overrides:
         variables:
-          XT_DOMA_DDK_KM_PREBUILT_MODULE: "../%{ANDROID_KERNEL_DIR}/out/android12-5.4/staging/vendor/lib/modules/pvrsrvkm.ko"
-          XT_DOMA_KERNEL_EXTRA_MODULES: "imagination"
+          XT_DOMA_DDK_KM_PREBUILT_MODULE: ""
+          XT_DOMA_KERNEL_EXTRA_MODULES: ""
           XT_DOMA_SOURCE_GROUP: "all"
     "yes":
       overrides:
         variables:
-          XT_DOMA_DDK_KM_PREBUILT_MODULE: "eva/pvr-km/pvrsrvkm.ko"
+          XT_DOMA_DDK_KM_PREBUILT_MODULE: ""
           XT_DOMA_KERNEL_EXTRA_MODULES: ""
           XT_DOMA_SOURCE_GROUP: "default"
         components:
