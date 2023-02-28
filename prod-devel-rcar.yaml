@@ -188,8 +188,8 @@ components:
         url: https://git.yoctoproject.org/meta-selinux
         rev: kirkstone
       - type: git
-        url: "https://github.com/otyshchenko1/meta-xt-prod-devel-rcar.git"
-        rev: my_devel_virtio
+        url: "https://github.com/dterletskiy/meta-xt-prod-devel-rcar.git"
+        rev: xenvm-trout-dev
     builder:
       type: yocto
       work_dir: "%{DOMD_BUILD_DIR}"
@@ -356,7 +356,7 @@ components:
       - type: repo
         url: https://github.com/dterletskiy/android_manifest.git
         rev: android-12-xenvm-trout-dev
-        manifest: doma.xml
+        manifest: default.xml
         depth: 1
         groups: "%{XT_DOMA_SOURCE_GROUP}"
         dir: "."
