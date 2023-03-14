@@ -1,0 +1,228 @@
+desc: "Xen-Troops development setup for Renesas RCAR Gen3 hardware"
+min_ver: "0.13"
+
+variables:
+  YOCTOS_WORK_DIR: "yocto"
+  DOM0_BUILD_DIR: "build-dom0"
+  DOMD_BUILD_DIR: "build-domd"
+  DOMU_BUILD_DIR: "build-domu"
+  ANDROID_KERNEL_DIR: "android_kernel"
+  DOMA_DIR: "android"
+  DOMZ_DIR: "zephyr"
+  XT_DOMD_DTB_NAME: "%{SOC_FAMILY}-%{MACHINE}-domd.dtb"
+  XT_DOMU_DTB_NAME: "salvator-generic-domu.dtb"
+  XT_DOMA_DTB_NAME: "salvator-generic-doma.dtb"
+  XT_XEN_DTB_NAME: "%{SOC_FAMILY}-%{MACHINE}-xen.dtb"
+  XT_PVR_NUM_OSID: "2"
+  XT_OP_TEE_FLAVOUR: "generic_dt"
+  XT_GENERIC_DOMU_TAG: ""
+  XT_DOMA_TAG: ""
+  XT_DOMA_DDK_KM_PREBUILT_MODULE: ""
+  XT_DOMA_KERNEL_EXTRA_MODULES: ""
+  XT_DOMA_SOURCE_GROUP: ""
+  XT_DOMZ_TAG: ""
+  # For this product we use one config for all machines for Zephyr
+  XT_DOMZ_CONFIG_NAME: "domz-generic.cfg"
+  XT_MULTIMEDIA_EVA_DIR : ""
+  XT_PREBUILT_GSX_DIR: ""
+  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/virtual-device:virtual_device_aarch64"
+  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/common-modules/virtual-device/virtual_device_aarch64"
+common_data:
+  # Sources used by all yocto-based domains
+  sources: &COMMON_SOURCES
+    - type: git
+      url: "https://github.com/otyshchenko1/poky.git"
+      rev: kirkstone_patched
+    - type: git
+      url: "https://git.openembedded.org/meta-openembedded"
+      rev: kirkstone
+    - type: git
+      url: "https://github.com/otyshchenko1/meta-virtualization.git"
+      rev: kirkstone_patched
+    - type: git
+      url: "https://github.com/otyshchenko1/meta-xt-common.git"
+      rev: my_devel_virtio
+    - type: git
+      url: "https://github.com/otyshchenko1/meta-xt-rcar.git"
+      rev: my_devel_virtio
+  # Common configuration options for all yocto-based domains
+  conf: &COMMON_CONF
+    - [SSTATE_DIR, "${TOPDIR}/../common_data/sstate"]
+    - [DL_DIR, "${TOPDIR}/../common_data/downloads"]
+
+    # Skip warning about missing "virtualization" distro feature
+    - [SKIP_META_VIRT_SANITY_CHECK, "1"]
+
+    # Use hypervisor console on all guests
+    - [SERIAL_CONSOLES, "115200;hvc0"]
+
+    # Configure number of supported GPU virtual guests
+    - [XT_PVR_NUM_OSID, "%{XT_PVR_NUM_OSID}"]
+
+    # Remove features that we are not using
+    - [DISTRO_FEATURES:remove, "x11 gtk gobject-introspection-data wifi nfc bluetooth irda zeroconf 3g sysvinit"]
+
+  # Conf options for domain that are built used renesas layer
+  domd_domu_conf: &DOMD_DOMU_CONF
+    - [MACHINE, "%{MACHINE}"]
+    - [SOC_FAMILY, "%{SOC_FAMILY}"]
+
+    # Add systemd configuration
+    - [INIT_MANAGER, "systemd"]
+
+    # add the static lib to SDK toolchain
+    - [SDKIMAGE_FEATURES:append, " staticdev-pkgs"]
+
+    # Add for gstreamer plugins ugly
+    - [LICENSE_FLAGS_ACCEPTED, "commercial"]
+
+    # Add Capacity Aware migration Strategy (CAS)
+    - [MACHINE_FEATURES:append, " cas"]
+
+    # Remove ptest to reduce the build time,
+    # remove x11 and vulkan to avoid error after removing mesa
+    - [DISTRO_FEATURES:remove, " ptest x11 vulkan"]
+
+    # HACK: force ipk instead of rpm b/c it makes troubles to PVR UM build otherwise
+    - [PACKAGE_CLASSES, "package_ipk"]
+
+    # Additional testing and debug tools
+    - [IMAGE_INSTALL:append, " expect ltrace evtest"]
+
+  # The same set of layers and configs is used both in DomD and DomU
+  # to build a DDK from source code
+  ddk_source_overrides: &DDK_SOURCE_OVERRIDES
+    sources:
+      - type: git
+        url: "https://git.openembedded.org/meta-python2"
+        rev: kirkstone
+      - type: git
+        url: "https://github.com/kraj/meta-clang.git"
+        rev: kirkstone
+      - type: git
+        url: "ssh://git@gitpct.epam.com/epmd-aepr/img-proprietary"
+        rev: "6ed789681c2867c7cae8b0150e093e1e2781797e"
+        dir: "proprietary"
+    builder:
+      layers:
+        - "../meta-python2"
+        - "../meta-clang"
+        - "../meta-xt-rcar/meta-xt-rcar-proprietary"
+
+components:
+  doma_kernel:
+    build-dir: "%{ANDROID_KERNEL_DIR}"
+    sources:
+      - type: repo
+        url: https://github.com/dterletskiy/android_kernel_manifest.git
+        rev: common-android14-6.1-xenvm-trout-dev
+        manifest: default.xml
+        depth: 1
+        groups: "%{XT_DOMA_SOURCE_GROUP}"
+        dir: "."
+    builder:
+      type: android_kernel_bazel
+      deploy-dir: "%{ANDROID_KERNEL_DEPLOY_DIR}"
+      build-config: "%{ANDROID_KERNEL_BUILD_CONFIG}"
+      env:
+        - "TARGET_BOARD_PLATFORM=%{SOC_FAMILY}"
+        - "BUILD_CONFIG=%{ANDROID_KERNEL_BUILD_CONFIG}"
+        - "SKIP_MRPROPER=1"
+        - "EXT_MODULES=%{XT_DOMA_KERNEL_EXTRA_MODULES}"
+      target_images:
+        - "%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
+        - "%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs.img"
+
+parameters:
+  # Machines
+  MACHINE:
+    desc: "RCAR Gen3-based device"
+    salvator-x-m3:
+      overrides:
+        variables:
+          MACHINE: "salvator-x"
+          SOC_FAMILY: "r8a7796"
+          XT_DOMD_CONFIG_NAME: "domd-salvator-x-m3.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-salvator-x-m3.cfg"
+          XT_DOMA_CONFIG_NAME: "NO-DOMA-CONFIG-FOR-M3-4GB"
+          XT_OP_TEE_FLAVOUR: "salvator_m3"
+          XT_DOMD_DTB_NAME: "r8a77960-%{MACHINE}-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a77960-%{MACHINE}-xen.dtb"
+    salvator-xs-m3-2x4g:
+      default: true
+      overrides:
+        variables:
+          MACHINE: "salvator-x"
+          SOC_FAMILY: "r8a7796"
+          XT_DOMD_CONFIG_NAME: "domd-salvator-xs-m3-2x4g.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-m3-2x4g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-m3-2x4g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_m3_2x4g"
+          XT_DOMD_DTB_NAME: "r8a77961-salvator-xs-2x4g-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a77961-salvator-xs-2x4g-xen.dtb"
+    salvator-xs-h3-4x2g:
+      overrides:
+        variables:
+          MACHINE: "salvator-x"
+          SOC_FAMILY: "r8a7795"
+          XT_DOMD_CONFIG_NAME: "domd-salvator-xs-h3-4x2g.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-h3-4x2g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-h3-4x2g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
+          XT_DOMD_DTB_NAME: "r8a7795-salvator-xs-4x2g-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a7795-salvator-xs-4x2g-xen.dtb"
+    salvator-x-h3-4x2g:
+      overrides:
+        variables:
+          MACHINE: "salvator-x"
+          SOC_FAMILY: "r8a7795"
+          XT_DOMD_CONFIG_NAME: "domd-salvator-x-h3-4x2g.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-h3-4x2g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-h3-4x2g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
+          XT_DOMD_DTB_NAME: "r8a7795-salvator-x-4x2g-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a7795-salvator-x-4x2g-xen.dtb"
+    h3ulcb-4x2g:
+      overrides:
+        variables:
+          MACHINE: "h3ulcb"
+          SOC_FAMILY: "r8a7795"
+          XT_DOMD_CONFIG_NAME: "domd-h3ulcb-4x2g.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-h3-4x2g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-h3-4x2g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
+          XT_DOMD_DTB_NAME: "r8a77951-h3ulcb-4x2g-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a77951-h3ulcb-4x2g-xen.dtb"
+    h3ulcb-4x2g-kf:
+      overrides:
+        variables:
+          MACHINE: "h3ulcb"
+          SOC_FAMILY: "r8a7795"
+          XT_DOMD_CONFIG_NAME: "domd-h3ulcb-4x2g-kf.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-h3-4x2g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-h3-4x2g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
+          XT_DOMD_DTB_NAME: "r8a77951-h3ulcb-4x2g-kf-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a77951-h3ulcb-4x2g-kf-xen.dtb"
+    h3ulcb-4x2g-ab:
+      overrides:
+        variables:
+          MACHINE: "h3ulcb"
+          SOC_FAMILY: "r8a7795"
+          XT_DOMD_CONFIG_NAME: "domd-h3ulcb-4x2g-ab.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-generic-h3-4x2g.cfg"
+          XT_DOMA_CONFIG_NAME: "doma-generic-h3-4x2g.cfg"
+          XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
+          XT_DOMD_DTB_NAME: "r8a77951-h3ulcb-4x2g-ab-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a77951-h3ulcb-4x2g-ab-xen.dtb"
+    m3ulcb:
+      overrides:
+        variables:
+          MACHINE: "m3ulcb"
+          SOC_FAMILY: "r8a7796"
+          XT_DOMD_CONFIG_NAME: "domd-m3ulcb.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-m3ulcb.cfg"
+          XT_DOMA_CONFIG_NAME: "NO-DOMA-CONFIG-FOR-M3-4GB"
+          XT_OP_TEE_FLAVOUR: "salvator_m3"
+          XT_DOMD_DTB_NAME: "r8a7796-m3ulcb-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a7796-m3ulcb-xen.dtb"
