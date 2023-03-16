@@ -16,7 +16,9 @@ FILES:${PN} += " \
 "
 
 do_install:append() {
-    cat ${WORKDIR}/doma-vdevices.cfg >> ${D}${sysconfdir}/xen/doma.cfg
+    # Excluding virtual devices, until we support starting QEMU with
+    # virtio devices in DomD from the Dom0
+    # cat ${WORKDIR}/doma-vdevices.cfg >> ${D}${sysconfdir}/xen/doma.cfg
 
     # Install doma-set-root script and the drop-in file to run it
     install -d ${D}${libdir}/xen/bin
