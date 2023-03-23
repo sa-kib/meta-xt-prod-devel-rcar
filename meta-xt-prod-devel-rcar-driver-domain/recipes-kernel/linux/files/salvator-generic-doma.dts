@@ -7,6 +7,13 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
+	passthrough {
+		compatible = "simple-bus";
+		ranges;
+		#address-cells = <2>;
+		#size-cells = <2>;
+	};
+
 	firmware {
 		android {
 			compatible = "android,firmware";
@@ -17,14 +24,6 @@
                                 parts = "vbmeta,boot,vendor_boot";
                                 by_name_prefix="/dev/block/by-name";
                         };
-		};
-	};
-
-	ion {
-		compatible = "renesas,ion-rcar";
-
-		heap_rcar_custom@0 {
-			heap-name = "rcar custom";
 		};
 	};
 };
