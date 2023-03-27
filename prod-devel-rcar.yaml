@@ -25,8 +25,8 @@ variables:
   XT_DOMZ_CONFIG_NAME: "domz-generic.cfg"
   XT_MULTIMEDIA_EVA_DIR : ""
   XT_PREBUILT_GSX_DIR: ""
-  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/virtual-device:virtual_device_aarch64"
-  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/common-modules/virtual-device/virtual_device_aarch64"
+  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/virtual-device:virtual_device_aarch64_xenvm"
+  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/common-modules/virtual-device/virtual_device_aarch64_xenvm"
   ANDROID_DEVICE: "xenvm_trout_arm64"
   ANDROID_LUNCH_TARGET: "aosp_xenvm_trout_arm64-userdebug"
 common_data:
