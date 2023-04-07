@@ -574,6 +574,15 @@ parameters:
                 gpt_type: 19A710A2-B3CA-11E4-B026-10604B889DCF # Android meta
                 type: empty
                 size: 1 MiB
+              vbmeta_system_a:
+                gpt_type: E7C06570-9FDC-11E8-8C15-0A580A200C13 # Android meta
+                type: raw_image
+                size: 1 MiB
+                image_path: "%{DOMA_DIR}/out/target/product/%{ANDROID_DEVICE}/vbmeta_system.img"
+              vbmeta_system_b:
+                gpt_type: E7C06570-9FDC-11E8-8C15-0A580A200C13 # Android meta
+                type: empty
+                size: 1 MiB
               misc:
                 gpt_type: EF32A33B-A409-486C-9141-9FFB711F6266 # Android misc
                 type: empty
