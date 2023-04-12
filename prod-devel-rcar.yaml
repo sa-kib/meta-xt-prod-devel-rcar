@@ -531,11 +531,6 @@ parameters:
         variables:
           XT_DOMA_TAG: "doma"
         components:
-          # Build and install ivi-shell in case of Android builds
-          domd:
-            builder:
-              conf:
-                - [DISTRO_FEATURES:append, " ivi-shell"]
           dom0:
             builder:
               additional_deps:
