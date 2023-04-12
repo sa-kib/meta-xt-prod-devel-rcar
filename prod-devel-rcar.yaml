@@ -42,11 +42,11 @@ common_data:
       url: "https://github.com/otyshchenko1/meta-virtualization.git"
       rev: kirkstone_patched
     - type: git
-      url: "https://github.com/otyshchenko1/meta-xt-common.git"
-      rev: my_devel_virtio
+      url: "https://github.com/svlad-90/meta-xt-common.git"
+      rev: xenvm-trout-dev
     - type: git
-      url: "https://github.com/otyshchenko1/meta-xt-rcar.git"
-      rev: my_devel_virtio
+      url: "https://github.com/svlad-90/meta-xt-rcar.git"
+      rev: xenvm-trout-dev
   # Common configuration options for all yocto-based domains
   conf: &COMMON_CONF
     - [SSTATE_DIR, "${TOPDIR}/../common_data/sstate"]
