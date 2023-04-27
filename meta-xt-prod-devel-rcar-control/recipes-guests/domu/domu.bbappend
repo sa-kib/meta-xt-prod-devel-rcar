@@ -19,9 +19,9 @@ do_install:append() {
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'pvcamera', 'true', 'false', d)}; then
         #cat ${WORKDIR}/domu-pvcamera.cfg >> ${CFG_FILE}
-        echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu.service
-        echo "Requires=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu.service
-        echo "After=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu.service
+        echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu-create.service
+        echo "Requires=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu-create.service
+        echo "After=backend-ready@camerabe.service" >> ${D}${systemd_unitdir}/system/domu-create.service
     fi
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'virtio', 'true', 'false', d)}; then
@@ -31,9 +31,9 @@ do_install:append() {
         sed -i 's/root=\/dev\/xvda1/root=\/dev\/vda/' ${CFG_FILE}
 
         # Update GUEST_DEPENDENCIES by adding dependency to the virtio
-        echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu.service
-        echo "Requires=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu.service
-        echo "After=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu.service
+        echo "[Unit]" >> ${D}${systemd_unitdir}/system/domu-create.service
+        echo "Requires=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu-create.service
+        echo "After=backend-ready@virtio.service" >> ${D}${systemd_unitdir}/system/domu-create.service
     fi
 
     # Install domu-set-root script
@@ -41,6 +41,6 @@ do_install:append() {
     install -m 0744 ${WORKDIR}/domu-set-root ${D}${libdir}/xen/bin
 
     # Call domu-set-root script
-    echo "[Service]" >> ${D}${systemd_unitdir}/system/domu.service
-    echo "ExecStartPre=${libdir}/xen/bin/domu-set-root" >> ${D}${systemd_unitdir}/system/domu.service
+    echo "[Service]" >> ${D}${systemd_unitdir}/system/domu-create.service
+    echo "ExecStartPre=${libdir}/xen/bin/domu-set-root" >> ${D}${systemd_unitdir}/system/domu-create.service
 }

@@ -10,7 +10,7 @@ SRC_URI += "\
 
 FILES:${PN} += " \
     ${libdir}/xen/bin/doma-set-root \
-    ${sysconfdir}/systemd/system/doma.service.d/doma-set-root.conf \
+    ${sysconfdir}/systemd/system/doma-create.service.d/doma-set-root.conf \
 "
 
 do_install:append() {
@@ -21,6 +21,6 @@ do_install:append() {
     # Install doma-set-root script and the drop-in file to run it
     install -d ${D}${libdir}/xen/bin
     install -m 0744 ${WORKDIR}/doma-set-root ${D}${libdir}/xen/bin
-    install -d ${D}${sysconfdir}/systemd/system/doma.service.d
-    install -m 0644 ${WORKDIR}/doma-set-root.conf ${D}${sysconfdir}/systemd/system/doma.service.d
+    install -d ${D}${sysconfdir}/systemd/system/doma-create.service.d
+    install -m 0644 ${WORKDIR}/doma-set-root.conf ${D}${sysconfdir}/systemd/system/doma-create.service.d
 }
