@@ -1,6 +1,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-RDEPENDS:${PN} = "backend-ready"
+RDEPENDS:${PN} += " backend-ready qemu-restart-monitor"
+
 SRC_URI += "\
     file://domu-vdevices.cfg \
     file://domu-pvcamera.cfg \
