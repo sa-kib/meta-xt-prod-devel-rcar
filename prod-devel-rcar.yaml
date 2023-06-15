@@ -1,5 +1,5 @@
 desc: "Xen-Troops development setup for Renesas RCAR Gen3 hardware"
-min_ver: "0.13"
+min_ver: "0.20"
 
 variables:
   YOCTOS_WORK_DIR: "yocto"
@@ -25,8 +25,8 @@ variables:
   XT_DOMZ_CONFIG_NAME: "domz-generic.cfg"
   XT_MULTIMEDIA_EVA_DIR : ""
   XT_PREBUILT_GSX_DIR: ""
-  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/xen-virtual-device:xen_virtual_device_aarch64"
-  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/xen-common-modules/virtual-device/xen_virtual_device_aarch64"
+  ANDROID_KERNEL_BUILD_CONFIG: "//common-modules/xen-virtual-device:xen_virtual_device_aarch64_dist"
+  ANDROID_KERNEL_DEPLOY_DIR: "out/deploy/common-modules/xen-virtual-device/xen_virtual_device_aarch64"
   ANDROID_DEVICE: "xenvm_trout_arm64"
   ANDROID_LUNCH_TARGET: "aosp_xenvm_trout_arm64-eng"
 common_data:
@@ -345,14 +345,17 @@ components:
         groups: "%{XT_DOMA_SOURCE_GROUP}"
         dir: "."
     builder:
-      type: android_kernel_bazel
-      deploy-dir: "%{ANDROID_KERNEL_DEPLOY_DIR}"
-      build-config: "%{ANDROID_KERNEL_BUILD_CONFIG}"
-      env:
-        - "TARGET_BOARD_PLATFORM=%{SOC_FAMILY}"
-        - "BUILD_CONFIG=%{ANDROID_KERNEL_BUILD_CONFIG}"
-        - "SKIP_MRPROPER=1"
-        - "EXT_MODULES=%{XT_DOMA_KERNEL_EXTRA_MODULES}"
+      type: bazel
+      tool: "tools/bazel"
+      startup-options:
+        - ""
+      command: run
+      args:
+        - "--verbose_failures"
+        - "--sandbox_debug"
+      target: "%{ANDROID_KERNEL_BUILD_CONFIG}"
+      target-patterns:
+        - "--dist_dir=%{ANDROID_KERNEL_DEPLOY_DIR}"
       target_images:
         - "%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
         - "%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs.img"
@@ -372,7 +375,7 @@ components:
       env:
         - "TARGET_BOARD_PLATFORM=%{SOC_FAMILY}"
         - "TARGET_PREBUILT_KERNEL=../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/Image"
-        - "TARGET_PREBUILT_MODULES_DIR=../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/initramfs/"
+        - "TARGET_PREBUILT_MODULES_DIR=../%{ANDROID_KERNEL_DIR}/%{ANDROID_KERNEL_DEPLOY_DIR}/"
         - "DDK_KM_PREBUILT_MODULE=%{XT_DOMA_DDK_KM_PREBUILT_MODULE}"
       lunch_target: "%{ANDROID_LUNCH_TARGET}"
       target_images:
