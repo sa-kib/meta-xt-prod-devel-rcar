@@ -192,6 +192,9 @@ components:
       - type: git
         url: "https://github.com/dterletskiy/meta-xt-prod-devel-rcar.git"
         rev: xenvm-trout-dev
+      - type: git
+        url: ssh://git@github.com/otyshchenko1/meta-xt-vhost.git
+        rev: devel
     builder:
       type: yocto
       work_dir: "%{DOMD_BUILD_DIR}"
@@ -220,7 +223,7 @@ components:
         - [PACKAGECONFIG:remove:pn-libsdl2, " x11 opengl"]
         - [PACKAGECONFIG:remove:pn-libepoxy, " x11"]
         - [PACKAGECONFIG:remove:pn-gtk+3, " x11"]
-        - [PACKAGECONFIG:append:pn-qemu, " sdl virglrenderer xen virtfs epoxy gtk+"]
+        - [PACKAGECONFIG:append:pn-qemu, " sdl virglrenderer xen virtfs epoxy gtk+ vhost"]
         - [PACKAGECONFIG:remove:pn-qemu, " kvm"]
         - [DISTRO_FEATURES:append, " xen vmsep"]
         - [QEMU_TARGETS, "aarch64"]
@@ -274,6 +277,7 @@ components:
         - "../meta-xt-prod-devel-rcar/meta-xt-domx-gen3"
         - "../meta-xt-prod-devel-rcar/meta-xt-prod-devel-rcar-driver-domain"
         - "../meta-xt-prod-devel-rcar/meta-xt-domd-gen3"
+        - "../meta-xt-vhost"
       target_images:
         - "tmp/deploy/images/%{MACHINE}/Image"
         - "tmp/deploy/images/%{MACHINE}/xen-%{MACHINE}.uImage"
