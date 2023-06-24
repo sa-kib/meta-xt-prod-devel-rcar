@@ -193,8 +193,8 @@ components:
         url: "https://github.com/dterletskiy/meta-xt-prod-devel-rcar.git"
         rev: xenvm-trout-dev
       - type: git
-        url: ssh://git@github.com/otyshchenko1/meta-xt-vhost.git
-        rev: devel
+        url: ssh://git@github.com/xen-troops/meta-xt-vhost.git
+        rev: main
     builder:
       type: yocto
       work_dir: "%{DOMD_BUILD_DIR}"
