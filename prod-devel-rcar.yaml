@@ -321,6 +321,8 @@ components:
         # Install kmscube which doesn't require libgbm
         - [IMAGE_INSTALL:append, " kmscube"]
 
+        # Remove unused module which gets broken with Linux v6.4
+        - [IMAGE_INSTALL:remove, " kernel-module-cmemdrv"]
       layers:
         - "../meta-openembedded/meta-oe"
         - "../meta-openembedded/meta-filesystems"
