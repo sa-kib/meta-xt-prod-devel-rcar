@@ -388,8 +388,8 @@ components:
         rev: "kirkstone-dev"
         dir: "meta-renesas-gen4"
       - type: git
-        url: https://github.com/xen-troops/meta-xt-prod-devel-rcar-gen4.git
-        rev: "master"
+        url: https://github.com/sa-kib/meta-xt-prod-devel-rcar-gen4.git
+        rev: "xenvm-trout-dev+spider"
         dir: "meta-xt-prod-devel-rcar-gen4"
 
     builder:
