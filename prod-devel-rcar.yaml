@@ -422,8 +422,8 @@ components:
         #- [PACKAGECONFIG:remove:pn-libsdl2, " x11 opengl"]
         #- [PACKAGECONFIG:remove:pn-libepoxy, " x11"]
         #- [PACKAGECONFIG:remove:pn-gtk+3, " x11"]
-        #- [PACKAGECONFIG:append:pn-qemu, " sdl virglrenderer xen virtfs epoxy gtk+ vhost"]
-        - [PACKAGECONFIG:remove:pn-qemu, " kvm"]
+        - [PACKAGECONFIG:append:pn-qemu, " xen virtfs vhost"]
+        - [PACKAGECONFIG:remove:pn-qemu, " kvm sdl virglrenderer epoxy"]
         - [DISTRO_FEATURES:append, " xen vmsep"]
         - [QEMU_TARGETS, "aarch64"]
         - [PACKAGE_INSTALL:append, " qemu-system-aarch64 qemu-keymaps"]
@@ -531,6 +531,7 @@ components:
         - "../meta-xt-rcar/meta-xt-rcar-domu"
         - "../meta-xt-rcar/meta-xt-rcar-gles_common"
         - "../meta-xt-prod-devel-rcar/meta-xt-domu-gen3"
+        - "../meta-renesas-gen4/meta-rcar-gateway"
       #build_target: core-image-weston
       build_target: rcar-image-minimal
       target_images:
@@ -718,7 +719,7 @@ parameters:
           XT_DOMD_DTB_NAME: "r8a77951-h3ulcb-4x2g-kf-domd.dtb"
           XT_XEN_DTB_NAME: "r8a77951-h3ulcb-4x2g-kf-xen.dtb"
         components:
-          domd:
+          gen4-domd:
             sources:
               - type: git
                 url: "https://github.com/xen-troops/meta-rcar.git"
@@ -758,7 +759,7 @@ parameters:
           MACHINE: "spider"
           SOC_FAMILY: "r8a779f0"
           XT_DOMD_CONFIG_NAME: "domd-spider.cfg"
-          XT_DOMU_CONFIG_NAME: "domu-m3ulcb.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-spider.cfg"
           XT_DOMA_CONFIG_NAME: "NO-DOMA-CONFIG-FOR-M3-4GB"
           XT_OP_TEE_FLAVOUR: "spider_s4"
           XT_DOMD_DTB_NAME: "r8a779f0-spider-domd.dtb"
@@ -900,7 +901,7 @@ parameters:
                 type: raw_image
                 gpt_type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 # Linux filesystem data
                 #image_path: "%{YOCTOS_WORK_DIR}/%{DOMU_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/core-image-weston-%{MACHINE}.ext4"
-                image_path: "%{YOCTOS_WORK_DIR}/%{DOMU_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/rcat-image-minimal-%{MACHINE}.ext4"
+                image_path: "%{YOCTOS_WORK_DIR}/%{DOMU_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/rcar-image-minimal-%{MACHINE}.ext4"
 
 
   ENABLE_ZEPHYR:
