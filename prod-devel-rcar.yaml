@@ -12,7 +12,7 @@ variables:
   DOMA_DIR: "android"
   DOMZ_DIR: "zephyr"
   XT_DOMD_DTB_NAME: "%{SOC_FAMILY}-%{MACHINE}-domd.dtb"
-  XT_DOMU_DTB_NAME: "salvator-generic-domu.dtb"
+  XT_DOMU_DTB_NAME: "r8a779f0-spider-domu.dtb"
   XT_DOMA_DTB_NAME: "salvator-generic-doma.dtb"
   XT_XEN_DTB_NAME: "%{SOC_FAMILY}-%{MACHINE}-xen.dtb"
   XT_PVR_NUM_OSID: "2"
@@ -495,11 +495,14 @@ components:
         - *COMMON_CONF
         - *DOMD_DOMU_CONF
         - [XT_DOM_NAME, "domu"]
+        - [XT_KERNEL_BRANCH, "master"]
+        - [XT_KERNEL_REV, "6995e2de6891c724bfeb2db33d7b87775f913ad1"]
         - [EXTRA_IMAGEDEPENDS:remove, "arm-trusted-firmware"]
         - [EXTRA_IMAGEDEPENDS:remove, "optee-os"]
         - [EXTRA_IMAGEDEPENDS:remove, "u-boot"]
 
         - [IMAGE_INSTALL:append, " pciutils"]
+        - [IMAGE_INSTALL:remove, " iccom-support optee-test"]
 
         # for Wayland/Weston
         - [DISTRO_FEATURES_NATIVESDK:append, " wayland"]
@@ -526,12 +529,10 @@ components:
         - "../meta-openembedded/meta-networking"
         - "../meta-openembedded/meta-gnome"
         - "../meta-renesas/meta-rcar-gen3"
-        - "../meta-xt-common/meta-xt-domu"
         - "../meta-xt-rcar/meta-xt-rcar-fixups"
-        - "../meta-xt-rcar/meta-xt-rcar-domu"
         - "../meta-xt-rcar/meta-xt-rcar-gles_common"
-        - "../meta-xt-prod-devel-rcar/meta-xt-domu-gen3"
         - "../meta-renesas-gen4/meta-rcar-gateway"
+        - "../meta-xt-prod-devel-rcar-gen4/meta-xt-domu-gen4"
       #build_target: core-image-weston
       build_target: rcar-image-minimal
       target_images:
