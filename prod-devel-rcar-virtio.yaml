@@ -6,6 +6,9 @@ variables:
   DOM0_BUILD_DIR: "build-dom0"
   DOMD_BUILD_DIR: "build-domd"
   DOMU_BUILD_DIR: "build-domu"
+  GEN4_DOM0_BUILD_DIR: "gen4/build-dom0"
+  GEN4_DOMD_BUILD_DIR: "gen4/build-domd"
+  GEN4_DOMU_BUILD_DIR: "gen4/build-domu"
   DOM0_MACHINE: "generic-armv8-xt"
   DOMD_MACHINE: "%{MACHINE}"
   DOMU_MACHINE: "virtio-armv8-xt"
@@ -17,6 +20,8 @@ variables:
   XT_XEN_DTB_NAME: "%{SOC_FAMILY}-%{DOMD_MACHINE}-xen.dtb"
   XT_PVR_NUM_OSID: "2"
   XT_OP_TEE_FLAVOUR: "generic_dt"
+  GEN4_XT_KERNEL_BRANCH: "rc11_rebase"
+  GEN4_XT_KERNEL_REV: a2e2ea0cef9159c57bb985f785f1fd7b1faaf474
   XT_GENERIC_DOMU_TAG: ""
   XT_DOMA_TAG: ""
   XT_DOMA_KERNEL_EXTRA_MODULES: ""
@@ -406,6 +411,194 @@ components:
         - "tee-%{DOMD_MACHINE}.srec"
         - "u-boot-elf-%{DOMD_MACHINE}.srec"
         - "u-boot-%{DOMD_MACHINE}.bin"
+  gen4-dom0:
+    build-dir: "%{YOCTOS_WORK_DIR}"
+    default: true
+    sources:
+      - *COMMON_SOURCES
+      - type: git
+        url: "https://github.com/xen-troops/meta-xt-prod-devel-rcar.git"
+        rev: "master"
+    builder:
+      type: yocto
+      work_dir: "%{GEN4_DOM0_BUILD_DIR}"
+      conf:
+        - *COMMON_CONF
+        - [MACHINE, "generic-armv8-xt"]
+        - [XT_DOMD_CONFIG_NAME, "%{XT_DOMD_CONFIG_NAME}"]
+        - [XT_DOMU_CONFIG_NAME, "%{XT_DOMU_CONFIG_NAME}"]
+        - [XT_DOMA_CONFIG_NAME, "%{XT_DOMA_CONFIG_NAME}"]
+        - [XT_DOMZ_CONFIG_NAME, "%{XT_DOMZ_CONFIG_NAME}"]
+        - [XT_DOMD_DTB_NAME, "%{XT_DOMD_DTB_NAME}"]
+        - [XT_DOMA_DTB_NAME, "%{XT_DOMA_DTB_NAME}"]
+        - [XT_DOM_NAME, "dom0"]
+        - [XT_GUEST_INSTALL, "domu %{XT_DOMZ_TAG} domd"]
+
+        # Disable HWDB which quite huge (around 15MB) and is not required at all
+        - [BAD_RECOMMENDATIONS:append, " udev-hwdb"]
+
+        # Remove unused DISTRO_FEATURES
+        - [DISTRO_FEATURES:remove, "acl alsa argp pcmcia usbgadget
+                usbhost opengl ptest multiarch wayland vulkan
+                sysvinit"]
+
+        # Enable systemd on dom0
+        - [INIT_MANAGER, "systemd"]
+
+        # Do not install kernel image to rootfs to decrease initrd size
+        - ["RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base", ""]
+
+        # Build our own Xen version rather than proposed by meta-virtualization
+        - [PREFERRED_VERSION_xen, "4.18.0+git%"]
+        - [PREFERRED_VERSION_xen-tools, "4.18.0+git%"]
+        - [MACHINEOVERRIDES:append, ":mem4gb"]
+        - [OVERRIDES:append, ":enable_virtio"]
+        - [QEMUVERSION, "7.0%"]
+        - [DISTRO_FEATURES:append, " enable_virtio"]
+        - [DISTRO_FEATURES:append, " xen vmsep"]
+
+      layers:
+        - "../../meta-virtualization"
+        - "../../meta-openembedded/meta-oe"
+        - "../../meta-openembedded/meta-filesystems"
+        - "../../meta-openembedded/meta-python"
+        - "../../meta-openembedded/meta-networking"
+        - "../../meta-xt-common/meta-xt-domx"
+        - "../../meta-xt-common/meta-xt-dom0"
+        - "../../meta-xt-common/meta-xt-control-domain"
+        - "../../meta-xt-common/meta-xt-control-domain-virtio"
+        - "../../meta-xt-common/meta-xt-qemu"
+        - "../../meta-xt-rcar/meta-xt-rcar-dom0"
+        - "../../meta-xt-prod-devel-rcar/meta-xt-prod-devel-rcar-control"
+        - "../../meta-xt-prod-devel-rcar-gen4/meta-xt-domx-gen4"
+        - "../../meta-xt-prod-devel-rcar-gen4/meta-xt-prod-devel-rcar-control-gen4"
+      build_target: core-image-thin-initramfs
+      external_src:
+        domd: "%{YOCTOS_WORK_DIR}/%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/"
+        domu: "%{YOCTOS_WORK_DIR}/%{GEN4_DOMU_BUILD_DIR}/tmp/deploy/images/%{DOMU_MACHINE}/"
+      additional_deps:
+        - "%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/Image"
+        - "%{GEN4_DOMU_BUILD_DIR}/tmp/deploy/images/%{DOMU_MACHINE}/Image"
+      target_images:
+        - "tmp/deploy/images/generic-armv8-xt/Image"
+        - "tmp/deploy/images/generic-armv8-xt/uInitramfs"
+
+  gen4-domd:
+    build-dir: "%{YOCTOS_WORK_DIR}"
+    sources:
+      - *COMMON_SOURCES
+      - type: git
+        url: "https://github.com/renesas-rcar/meta-renesas.git"
+        rev: "kirkstone-dev"
+      - type: git
+        url: "https://git.yoctoproject.org/meta-selinux"
+        rev: "kirkstone"
+      - type: git
+        url: "https://github.com/xen-troops/meta-xt-prod-devel-rcar.git"
+        rev: "master"
+      - type: git
+        url: https://github.com/sa-kib/meta-xt-prod-devel-rcar-gen4.git
+        rev: "virtio+spider"
+        dir: "meta-xt-prod-devel-rcar-gen4"
+
+    builder:
+      type: yocto
+      work_dir: "%{GEN4_DOMD_BUILD_DIR}"
+      conf:
+        - *COMMON_CONF
+        - *DOMD_DOMU_CONF
+        - [MACHINE, "%{DOMD_MACHINE}"]
+        - [XT_DOM_NAME, "domd"]
+        - [XT_OP_TEE_FLAVOUR, "%{XT_OP_TEE_FLAVOUR}"]
+        - [XT_DEVICE_TREES, "%{XT_DOMD_DTB_NAME} %{XT_XEN_DTB_NAME}"]
+        - [XT_KERNEL_BRANCH, "%{GEN4_XT_KERNEL_BRANCH}"]
+        - [XT_KERNEL_REV, "%{GEN4_XT_KERNEL_REV}"]
+        - [XT_GUEST_INSTALL, "domu %{XT_DOMZ_TAG}"]
+
+        # fixup DOMD_COMU_CONF options
+        - [DISTRO_FEATURES_NATIVESDK:remove, " wayland"]
+        - [DISTRO_FEATURES:remove, " pam"]
+        - [IMAGE_FSTYPES:append, " ext4"]
+
+        # Build our own Xen version rather than proposed by meta-virtualization
+        - [PREFERRED_VERSION_xen, "4.18.0+git%"]
+        - [PREFERRED_VERSION_xen-tools, "4.18.0+git%"]
+
+        - [PACKAGECONFIG:append:pn-qemu, " xen virtfs vhost"]
+        - [PACKAGECONFIG:remove:pn-qemu, " kvm sdl virglrenderer epoxy"]
+        - [DISTRO_FEATURES:append, " enable_virtio"]
+        - [DISTRO_FEATURES:append, " xen vmsep"]
+        - [QEMUVERSION, "7.0%"]
+        - [PACKAGE_INSTALL:append, " qemu-system-aarch64 qemu-keymaps"]
+
+        # Configuration for USB 3.0
+        - [MACHINE_FEATURES:append, " usb3"]
+
+      layers:
+        - "../../poky/meta"
+        - "../../poky/meta-poky"
+        - "../../poky/meta-yocto-bsp"
+        - "../../meta-virtualization"
+        - "../../meta-selinux"
+        - "../../meta-openembedded/meta-oe"
+        - "../../meta-openembedded/meta-networking"
+        - "../../meta-openembedded/meta-python"
+        - "../../meta-openembedded/meta-filesystems"
+        - "../../meta-openembedded/meta-gnome"
+        - "../../meta-renesas/meta-rcar-gateway"
+        - "../../meta-xt-common/meta-xt-domx"
+        - "../../meta-xt-common/meta-xt-driver-domain"
+        - "../../meta-xt-common/meta-xt-driver-domain-virtio"
+        - "../../meta-xt-common/meta-xt-qemu"
+        - "../../meta-xt-prod-devel-rcar-gen4/meta-xt-domx-gen4"
+        - "../../meta-xt-prod-devel-rcar-gen4/meta-xt-driver-domain-gen4"
+        - "../../meta-xt-prod-devel-rcar-gen4/meta-xt-domd-gen4"
+      build_target: rcar-image-minimal
+      target_images:
+        - "tmp/deploy/images/%{MACHINE}/Image"
+        - "tmp/deploy/images/%{MACHINE}/xen-%{MACHINE}.uImage"
+        - "tmp/deploy/images/%{MACHINE}/xenpolicy-%{MACHINE}"
+        - "tmp/deploy/images/%{MACHINE}/%{XT_XEN_DTB_NAME}"
+        - "tmp/deploy/images/%{MACHINE}/rcar-image-minimal-%{MACHINE}.ext4"
+
+  gen4-domu:
+    build-dir: "%{YOCTOS_WORK_DIR}"
+    sources:
+      - *COMMON_SOURCES
+      - type: git
+        url: "https://github.com/renesas-rcar/meta-renesas.git"
+        rev: "kirkstone-dev"
+    builder:
+      type: yocto
+      work_dir: "%{GEN4_DOMU_BUILD_DIR}"
+      conf:
+        - *COMMON_CONF
+        - *DOMD_DOMU_CONF
+        - [MACHINE, "%{DOMU_MACHINE}"]
+        - [XT_DOM_NAME, "domu"]
+
+        # fixup DOMD_COMU_CONF options
+        - [DISTRO_FEATURES_NATIVESDK:remove, " wayland"]
+        - [DISTRO_FEATURES:remove, " pam"]
+        - [IMAGE_FSTYPES:append, " ext4"]
+
+        - [EXTRA_IMAGEDEPENDS:remove, "arm-trusted-firmware"]
+        - [EXTRA_IMAGEDEPENDS:remove, "optee-os"]
+        - [EXTRA_IMAGEDEPENDS:remove, "u-boot"]
+        - [IMAGE_INSTALL:append, " pciutils kernel-module-nvme-core kernel-module-nvme"]
+        - [IMAGE_INSTALL:remove, " iccom-support optee-test"]
+
+      layers:
+        - "../../meta-openembedded/meta-oe"
+        - "../../meta-openembedded/meta-filesystems"
+        - "../../meta-openembedded/meta-python"
+        - "../../meta-openembedded/meta-networking"
+        - "../../meta-xt-common/meta-xt-domu"
+        - "../../meta-xt-common/meta-xt-domu-virtio"
+      build_target: core-image-minimal
+      target_images:
+        - "tmp/deploy/images/%{DOMU_MACHINE}/Image"
+        - "tmp/deploy/images/%{DOMU_MACHINE}/core-image-minimal-%{DOMU_MACHINE}.ext4"
 
 images:
   full:
@@ -426,6 +619,28 @@ images:
         gpt_type: B921B045-1DF0-41C3-AF44-4C6F280D3FAE # Linux aarch64 root
         type: raw_image
         image_path: "%{YOCTOS_WORK_DIR}/%{DOMD_BUILD_DIR}/tmp/deploy/images/%{DOMD_MACHINE}/core-image-weston-%{DOMD_MACHINE}.ext4"
+  gen4_full:
+    type: gpt
+    desc: "Full SD-card/eMMC image"
+    partitions:
+      boot:
+        gpt_type: 21686148-6449-6E6F-744E-656564454649 # BIOS boot partition (kinda...)
+        type: ext4
+        size: 128 MiB
+        files:
+          "Image": "%{YOCTOS_WORK_DIR}/%{GEN4_DOM0_BUILD_DIR}/tmp/deploy/images/generic-armv8-xt/Image"
+          "uInitramfs": "%{YOCTOS_WORK_DIR}/%{GEN4_DOM0_BUILD_DIR}/tmp/deploy/images/generic-armv8-xt/uInitramfs"
+          "xen": "%{YOCTOS_WORK_DIR}/%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/xen-%{MACHINE}.uImage"
+          "xenpolicy": "%{YOCTOS_WORK_DIR}/%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/xenpolicy-%{MACHINE}"
+          "xen.dtb": "%{YOCTOS_WORK_DIR}/%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/%{XT_XEN_DTB_NAME}"
+      domd_rootfs:
+        gpt_type: B921B045-1DF0-41C3-AF44-4C6F280D3FAE # Linux aarch64 root
+        type: raw_image
+        image_path: "%{YOCTOS_WORK_DIR}/%{GEN4_DOMD_BUILD_DIR}/tmp/deploy/images/%{MACHINE}/rcar-image-minimal-%{MACHINE}.ext4"
+      domu-rootfs:
+        type: raw_image
+        gpt_type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 # Linux filesystem data
+        image_path: "%{YOCTOS_WORK_DIR}/%{GEN4_DOMU_BUILD_DIR}/tmp/deploy/images/%{DOMU_MACHINE}/core-image-minimal-%{DOMU_MACHINE}.ext4"
 
 parameters:
   # Machines
@@ -512,6 +727,17 @@ parameters:
           XT_OP_TEE_FLAVOUR: "salvator_h3_4x2g"
           XT_DOMD_DTB_NAME: "r8a77951-h3ulcb-4x2g-ab-domd.dtb"
           XT_XEN_DTB_NAME: "r8a77951-h3ulcb-4x2g-ab-xen.dtb"
+    spider:
+      overrides:
+        variables:
+          MACHINE: "spider"
+          SOC_FAMILY: "r8a779f0"
+          XT_DOMD_CONFIG_NAME: "domd-spider.cfg"
+          XT_DOMU_CONFIG_NAME: "domu-spider.cfg"
+          XT_DOMA_CONFIG_NAME: "NO-DOMA-CONFIG-FOR-M3-4GB"
+          XT_OP_TEE_FLAVOUR: "spider_s4"
+          XT_DOMD_DTB_NAME: "r8a779f0-spider-domd.dtb"
+          XT_XEN_DTB_NAME: "r8a779f0-spider-xen.dtb"
 
   ENABLE_ANDROID:
     desc: "Build Android as a guest VM"
