@@ -155,7 +155,7 @@ components:
         - [XT_DOMD_CONFIG_NAME, "%{XT_DOMD_CONFIG_NAME}"]
         - [XT_DOMD_DTB_NAME, "%{XT_DOMD_DTB_NAME}"]
         - [XT_DOM_NAME, "dom0"]
-        - [XT_GUEST_INSTALL, "%{XT_GENERIC_DOMU_TAG} %{XT_DOMA_TAG} %{XT_DOMZ_TAG} domd"]
+        - [XT_GUEST_INSTALL, "%{XT_GENERIC_DOMU_TAG} %{XT_DOMA_TAG} %{XT_DOMZ_TAG}"]
 
         # Disable HWDB which quite huge (around 15MB) and is not required at all
         - [BAD_RECOMMENDATIONS:append, " udev-hwdb"]
