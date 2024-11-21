@@ -8,10 +8,9 @@ FILES:${PN} += " \
     ${libdir}/xen/bin/domd-set-root \
 "
 
-#DOMD_RAM_SIZE:mem8gb = "2048"
-#DOMD_RAM_SIZE:mem4gb = "1024"
-#DOMD_RAM_SIZE:mem8gb:enable_android:enable_virtio = "3072"
-DOMD_RAM_SIZE = "1024"
+DOMD_RAM_SIZE:mem8gb = "2048"
+DOMD_RAM_SIZE:mem4gb = "1024"
+DOMD_RAM_SIZE:mem8gb:enable_android:enable_virtio = "3072"
 
 # It is used a lot in the do_install, so variable will be handy
 CFG_FILE="${D}${sysconfdir}/xen/domd.cfg"
