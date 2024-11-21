@@ -15,9 +15,6 @@ DOMD_RAM_SIZE:mem8gb:enable_android:enable_virtio = "3072"
 # It is used a lot in the do_install, so variable will be handy
 CFG_FILE="${D}${sysconfdir}/xen/domd.cfg"
 
-#HACK: do not autostart domd
-SYSTEMD_SERVICE:${PN}:remove = "domd.service"
-
 do_install:append() {
 
     echo "" >> ${CFG_FILE}
