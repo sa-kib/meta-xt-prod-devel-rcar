@@ -1,0 +1,35 @@
+/*
+ * Device Tree multiboot chosen node for systems running XEN hypervisor
+ *
+ * Copyright (C) 2022 EPAM Systems.
+ *
+ * This file is licensed under the terms of the GNU General Public License
+ * version 2.  This program is licensed "as is" without any warranty of any
+ * kind, whether express or implied.
+ */
+
+
+/ {
+	chosen {
+		hwdom {
+			#address-cells = <2>;
+			#size-cells = <2>;
+			compatible = "xen,domain";
+			memory = <0 0x40000>;
+			cpus = <4>;
+			vpl011;
+
+			module@0 {
+				compatible = "multiboot,kernel", "multiboot,module";
+				reg = <0x0 0x8C010000 0x0 0x02000000>;
+				bootargs = "rootwait root=/dev/mmcblk0p2 rw console=ttyAMA0";
+
+			};
+
+			module@1 {
+				compatible = "multiboot,device-tree", "multiboot,module";
+				reg = <0x0 0x8E010000 0x0 0x80000>;
+			};
+		};
+	};
+};
